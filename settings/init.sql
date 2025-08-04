@@ -21,4 +21,4 @@ set hive.auto.convert.join.shuffle.max.size=10000000000;
 set hive.tez.llap.min.reducer.per.executor=0.33;
 set hive.map.aggr.hash.min.reduction=0.99;
 
-set hive.optimize.sort.dynamic.partition.threshold=0;
+set hive.optimize.sort.dynamic.partition=true;

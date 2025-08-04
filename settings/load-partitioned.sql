@@ -28,4 +28,4 @@ set hive.tez.min.partition.factor=0.01;
 -- set mapreduce.reduce.memory.mb=4096;
 -- set io.sort.mb=800;
 
-set hive.optimize.sort.dynamic.partition.threshold=0;
+set hive.optimize.sort.dynamic.partition=true;
