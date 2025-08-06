@@ -33,7 +33,8 @@ my $db = {
 print "filename,status,time,rows\n";
 for my $query ( @queries ) {
 	my $logname = "$query.log";
-	my $cmd="echo 'use $db->{${suite}}; source $query;' | hive -i testbench.settings 2>&1  | tee $query.log";
+        my $beeline_mr3 = "beeline -u 'jdbc:hive2://datanode01:2181/tpcds_bin_partitioned_orc_2;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=kyuubi' -n hive ";
+	my $cmd="echo 'use $db->{${suite}}; source $query;' | $beeline_mr3 -i testbench.settings 2>&1  | tee $query.log";
 #	my $cmd="cat $query.log";
 	#print $cmd ; exit;
 	
@@ -46,14 +47,14 @@ for my $query ( @queries ) {
 	my $hiveTime = $hiveEnd - $hiveStart;
 	foreach my $line ( @hiveoutput ) {
                 if( $line =~ /(\d+|No) rows selected \(([\d\.]+) seconds\)/ ) {
-	                my $rows = $1 eq 'No' ? 0 : $1; 
-	 		# print $line;
+                        my $rows = $1 eq 'No' ? 0 : $1;
+                        # print $line;
                         print "$query,success,$hiveTime,$rows,$2\n";
                 } elsif( $line =~ /(\d+) row selected \(([\d\.]+) seconds\)/ ) {
-			# print $line;
-		        print "$query,success,$hiveTime,$1,$2\n";
-	        } elsif($line =~ /ERROR : FAILED: /) {
-	                print "$query,failed,$hiveTime\n";
+                       # print $line;
+                        print "$query,success,$hiveTime,$1,$2\n";
+                } elsif($line =~ /ERROR : FAILED: /) {
+                        print "$query,failed,$hiveTime\n";
 		} elsif( 
 			$line =~ /^FAILED: /
 			# || /Task failed!/ 
