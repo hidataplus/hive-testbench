@@ -7,13 +7,13 @@ set hive.exec.max.created.files=1000000;
 set hive.exec.parallel=true;
 set hive.exec.reducers.max=${REDUCERS};
 set hive.stats.autogather=true;
-set hive.optimize.sort.dynamic.partition=true;
+set hive.optimize.sort.dynamic.partition.threshold=0;
 
 -- set mapred.job.reduce.input.buffer.percent=0.0;
 -- set mapreduce.input.fileinputformat.split.minsize=240000000;
 -- set mapreduce.input.fileinputformat.split.minsize.per.node=240000000;
 -- set mapreduce.input.fileinputformat.split.minsize.per.rack=240000000;
-set hive.optimize.sort.dynamic.partition=true;
+set hive.optimize.sort.dynamic.partition.threshold=0;
 -- set hive.tez.java.opts=-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp/;
 
 set tez.runtime.empty.partitions.info-via-events.enabled=true;
@@ -28,4 +28,4 @@ set hive.tez.min.partition.factor=0.01;
 -- set mapreduce.reduce.memory.mb=4096;
 -- set io.sort.mb=800;
 
-set hive.optimize.sort.dynamic.partition=true;
+set hive.optimize.sort.dynamic.partition.threshold=0;
