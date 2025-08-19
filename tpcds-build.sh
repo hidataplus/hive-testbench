@@ -21,15 +21,15 @@ if [ $? -ne 0 ]; then
 	fi
 	if [ $SKIP -ne 1 ]; then
 		echo "Maven not found, automatically installing it."
-		curl -O https://downloads.apache.org/maven/maven-3/3.0.5/binaries/apache-maven-3.0.5-bin.tar.gz 2> /dev/null
+		curl -O wget https://mirrors.aliyun.com/apache/maven/maven-3/3.9.11/binaries/apache-maven-3.9.11-bin.tar.gz 2> /dev/null
 		if [ $? -ne 0 ]; then
 			echo "Failed to download Maven, check Internet connectivity and try again."
 			exit 1
 		fi
 	fi
-	tar -zxf apache-maven-3.0.5-bin.tar.gz > /dev/null
+	tar -zxf apache-maven-3.9.11-bin.tar.gz > /dev/null
 	CWD=$(pwd)
-	export MAVEN_HOME="$CWD/apache-maven-3.0.5"
+	export MAVEN_HOME="$CWD/apache-maven-3.9.11"
 	export PATH=$PATH:$MAVEN_HOME/bin
 fi
 

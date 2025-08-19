@@ -109,9 +109,9 @@ yum -y install gcc gcc-c++ git
 ```
 su - hive
 
-wget https://dlcdn.apache.org/maven/maven-3/3.9.11/binaries/apache-maven-3.9.11-bin.tar.gz
+wget https://mirrors.aliyun.com/apache/maven/maven-3/3.9.11/binaries/apache-maven-3.9.11-bin.tar.gz
 
-tar zxvf apache-maven-3.9.11-bin.tar.gz 
+tar zxvf apache-maven-3.9.11-bin.tar.gz
 
 export MAVEN_HOME=/home/hive/apache-maven-3.9.11
 export PATH=${MAVEN_HOME}/bin:$PATH
@@ -135,7 +135,7 @@ cp $MAVEN_HOME/conf/settings.xml ~/.m2/
 ```
 su - hive
 
-git clone https://github.com/hortonworks/hive-testbench.git
+git clone https://github.com/hidataplus/hive-testbench
 ```
 
 - Step 4: 编译
@@ -163,7 +163,7 @@ SF就是数据规模，数字为几就代表几G
 hive -e "desc database tpcds_bin_partitioned_orc_$SF"
 ```
 
-开始为不存在，如果想重新来过，可以额清理已经存在的Hive数据库。
+开始库是不存在的，如果想重新来过，可以清理已经存在的Hive数据库。
 ```
 hive -e "drop database tpcds_bin_partitioned_orc_$SF cascade"
 ```
@@ -272,7 +272,7 @@ Data loaded into database tpcds_bin_partitioned_orc_2.
 2) 建立TXT表，建表语句在ddl-tpcds/
 3) 建立ORC表，将数据从TXT表插入到ORC表。
 
-- Step 6: 执行测试
+- Step 6: 执行测试(Hive\Spark\Mr3)
 
 1) (可选)重新生成统计信息
 ```
@@ -332,6 +332,112 @@ MR3
 
 ```
 
+结果集解读：
+```
+filename,status,time,rows
+query1.sql,success,8,0,3.229
+query10.sql,success,8,13,3.789
+query11.sql,success,17,100,12.593
+```
+第一列：sql名称
+第二列：执行是否成功
+第三列：执行整体时间
+第四列：结果集行数
+第五列：sql执行时间（beeline里的单条sql执行时间，不包含beeline连接等时间）
+
 注意执行以上sql时，需要注意本文开头所说的环境说明。
+
+- Step 7: 执行测试(Trino)
+
+```
+./runSuite_trino.pl tpcds $SF
+```
+
+结果集解读：
+```
+filename,status,time,rows
+query1.sql,success,5,132K,4.25
+query10.sql,success,4,1.52M,2.44
+query11.sql,success,6,6.17M,4.55
+```
+第一列：sql名称
+第二列：执行是否成功
+第三列：执行整体时间
+第四列：读取文件大小
+第五列：sql执行时间（beeline里的单条sql执行时间，不包含beeline连接等时间）
+
+缺点：目前脚本无法读取sql结果集的行数，列出了文件大小以供参考
+
+
+
+- Step 8: 执行测试(Doris)
+
+测试Doris读取Hive表的性能。
+
+
+#hdp里创建mysql软链接
+```
+ln -s /usr/hdp/current/doris3-client/mysql-client/bin/mysql /usr/bin/mysql
+```
+
+连接数据库,测试单条
+```
+doris3 -uroot -P9030 -hdatanode01
+
+-- 建立hive catalog 用于tpcds测试
+CREATE CATALOG hive_catalog PROPERTIES (
+    'type'='hms',
+    'hive.metastore.uris' = 'thrift://datanode01:9083',
+    'hadoop.username' = 'hive',
+	'fs.defaultFS' = 'hdfs://datanode01:8020'
+);
+
+--切换catalog
+switch hive_catalog;
+
+--切换database; _2为SF，需要自己修改。
+use tpcds_bin_partitioned_orc_2;
+
+--显示表名
+show tables;
+
+--测试数据是否可读
+select * from web_site limit 10;
+
+```
+
+执行测试脚本
+
+```
+#保持与Step6中一样的参数
+export SF=10
+
+# -s 1与SF意义相同，目前支持1 100 1000 10000，可以暂时使用1，不行再试其他
+./bin/run-tpcds-queries.sh -s 1
+
+```
+
+结果集解读：
+```
+query1  3400    792     757     757
+query2  2526    608     519     519
+......
+Total cold run time: 90105 ms
+Total hot run time: 79001 ms
+Finish tpcds queries.
+
+```
+
+第一列：sql名称
+第二列：冷启动执行时间
+第三列：热启动执行时间1
+第四列：热启动执行时间2
+第五列：两个热启动执行时间的最小值
+
+
+
+- Step 9: 并行测试
+
+TODO：部分计算引擎在单次执行时，明显优秀，但是在并发状态下，开始下降，需要一个更大的环境进行并发测试。
 
 
