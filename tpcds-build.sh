@@ -13,9 +13,9 @@ done
 which mvn > /dev/null 2>&1
 if [ $? -ne 0 ]; then
 	SKIP=0
-	if [ -e "apache-maven-3.0.5-bin.tar.gz" ]; then
-		SIZE=`du -b apache-maven-3.0.5-bin.tar.gz | cut -f 1`
-		if [ $SIZE -eq 5144659 ]; then
+	if [ -e "apache-maven-3.9.11-bin.tar.gz" ]; then
+		SIZE=`du -b apache-maven-3.9.11-bin.tar.gz | cut -f 1`
+		if [ $SIZE -eq 9160848 ]; then
 			SKIP=1
 		fi
 	fi

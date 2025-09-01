@@ -101,7 +101,7 @@ TPC-DS步骤
 - Step 1: 准备操作系统环境
 
 ```
-yum -y install gcc gcc-c++ git
+yum -y install gcc gcc-c++ git which patch
 ```
 
 - Step 2: 配置maven

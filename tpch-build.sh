@@ -13,23 +13,23 @@ done
 which mvn > /dev/null 2>&1
 if [ $? -ne 0 ]; then
 	SKIP=0
-	if [ -e "apache-maven-3.0.5-bin.tar.gz" ]; then
-		SIZE=`du -b apache-maven-3.0.5-bin.tar.gz | cut -f 1`
-		if [ $SIZE -eq 5144659 ]; then
+	if [ -e "apache-maven-3.9.11-bin.tar.gz" ]; then
+		SIZE=`du -b apache-maven-3.9.11-bin.tar.gz | cut -f 1`
+		if [ $SIZE -eq 9160848 ]; then
 			SKIP=1
 		fi
 	fi
 	if [ $SKIP -ne 1 ]; then
 		echo "Maven not found, automatically installing it."
-		curl -O https://downloads.apache.org/maven/maven-3/3.0.5/binaries/apache-maven-3.0.5-bin.tar.gz 2> /dev/null
+		curl -O https://mirrors.aliyun.com/apache/maven/maven-3/3.9.11/binaries/apache-maven-3.9.11-bin.tar.gz 2> /dev/null
 		if [ $? -ne 0 ]; then
 			echo "Failed to download Maven, check Internet connectivity and try again."
 			exit 1
 		fi
 	fi
-	tar -zxf apache-maven-3.0.5-bin.tar.gz > /dev/null
+	tar -zxf apache-maven-3.9.11-bin.tar.gz > /dev/null
 	CWD=$(pwd)
-	export MAVEN_HOME="$CWD/apache-maven-3.0.5"
+	export MAVEN_HOME="$CWD/apache-maven-3.9.11"
 	export PATH=$PATH:$MAVEN_HOME/bin
 fi
 
