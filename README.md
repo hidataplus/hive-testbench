@@ -147,7 +147,17 @@ cd hive-testbench
 
 中间有个输入，输入Y
 
+
+hive3修改脚本
+
+```
+sed -i 's/hive.optimize.sort.dynamic.partition.threshold=0/hive.optimize.sort.dynamic.partition=true/' settings/*.sql
+```
+其他暂时不需要改
+
+
 - Step 5: 生成数据
+
 
 1) 声明数据规模变量
 
@@ -272,9 +282,14 @@ Data loaded into database tpcds_bin_partitioned_orc_2.
 2) 建立TXT表，建表语句在ddl-tpcds/
 3) 建立ORC表，将数据从TXT表插入到ORC表。
 
+ 
+
+
+
 - Step 6: 执行测试(Hive\Spark\Mr3)
 
-1) (可选)重新生成统计信息
+1) (强烈建议)重新生成统计信息
+在Hive3上发现，如果不重新生成，可能有些奇怪问题
 ```
 SF=10
 
@@ -294,6 +309,8 @@ hive --database tpcds_bin_partitioned_orc_$SF
 use tpcds_bin_partitioned_orc_10;
 
 source query10.sql;
+
+source query18.sql;
 
 ```
 
@@ -372,6 +389,7 @@ query11.sql,success,6,6.17M,4.55
 
 - Step 8: 执行测试(Doris)
 
+#doris3
 测试Doris读取Hive表的性能。
 
 
@@ -392,6 +410,23 @@ CREATE CATALOG hive_catalog PROPERTIES (
 	'fs.defaultFS' = 'hdfs://datanode01:8020'
 );
 
+-- 建立hive catalog 用于tpcds测试(kerberos)
+CREATE CATALOG hive_catalog PROPERTIES (
+    'type'='hms',
+    'hive.metastore.uris' = 'thrift://datanode01:9083',
+    'hadoop.username' = 'hive',
+	'fs.defaultFS' = 'hdfs://datanode01:8020',
+	'hive.metastore.authentication.type' = 'kerberos',
+	'hive.metastore.service.principal' = 'hive@EXAMPLE.COM',
+	'hive.metastore.client.principal' = 'hive/@EXAMPLE.COM',
+	'hive.metastore.client.keytab' = '/etc/security/keytabs/hive.keytab',
+	'hadoop.security.authentication' = 'kerberos',
+	'hadoop.kerberos.principal' = 'hive/@EXAMPLE.COM',
+	'hadoop.kerberos.keytab' = '/etc/security/keytabs/hive.keytab',
+	'hive.metastore.username' = 'hive'
+);
+
+
 --切换catalog
 switch hive_catalog;
 
@@ -405,6 +440,62 @@ show tables;
 select * from web_site limit 10;
 
 ```
+
+
+#doris2
+
+#hdp里创建mysql软链接
+```
+ln -s /usr/hdp/current/doris-client/mysql-client/bin/mysql /usr/bin/mysql
+```
+
+连接数据库,测试单条
+```
+doris -uroot -P9030 -hdatanode01
+
+-- 建立hive catalog 用于tpcds测试
+CREATE CATALOG hive_catalog PROPERTIES (
+    'type'='hms',
+    'hive.metastore.uris' = 'thrift://datanode01:9083',
+    'hadoop.username' = 'hive',
+	'fs.defaultFS' = 'hdfs://datanode01:8020'
+);
+
+
+-- 建立hive catalog 用于tpcds测试(kerberos)
+CREATE CATALOG hive_catalog PROPERTIES (
+    'type'='hms',
+    'hive.metastore.uris' = 'thrift://datanode01:9083',
+    'hadoop.username' = 'hive',
+	'fs.defaultFS' = 'hdfs://datanode01:8020',
+	'hive.metastore.authentication.type' = 'kerberos',
+	'hive.metastore.service.principal' = 'hive@EXAMPLE.COM',
+	'hive.metastore.client.principal' = 'hive/@EXAMPLE.COM',
+	'hive.metastore.client.keytab' = '/etc/security/keytabs/hive.keytab',
+	'hadoop.security.authentication' = 'kerberos',
+	'hadoop.kerberos.principal' = 'hive/@EXAMPLE.COM',
+	'hadoop.kerberos.keytab' = '/etc/security/keytabs/hive.keytab',
+	'hive.metastore.username' = 'hive'
+	
+	
+);
+
+
+--切换catalog
+switch hive_catalog;
+
+--切换database; _2为SF，需要自己修改。
+use tpcds_bin_partitioned_orc_10;
+
+--显示表名
+show tables;
+
+--测试数据是否可读
+select * from web_site limit 10;
+
+```
+
+
 
 执行测试脚本
 
@@ -434,6 +525,11 @@ Finish tpcds queries.
 第四列：热启动执行时间2
 第五列：两个热启动执行时间的最小值
 
+
+doris的内存参数：
+
+mem_limit： Default value: 90%，在be.conf里进行配置。
+exec_mem_limit： 单条sql最大使用内存，默认为2G，可以在会话级别设置，也可以在fe.conf里面设置
 
 
 - Step 9: 并行测试
