@@ -33,7 +33,7 @@ my $db = {
 print "filename,status,time,rows\n";
 for my $query ( @queries ) {
 	my $logname = "$query.log";
-        my $beeline_mr3 = "beeline -u 'jdbc:hive2://datanode01:2181/tpcds_bin_partitioned_orc_2;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2-mr3' -n hive ";
+    my $beeline_mr3 = "beeline -u 'jdbc:hive2://datanode01:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2-mr3' -n hive ";
 	my $cmd="echo 'use $db->{${suite}}; source $query;' | $beeline_mr3 -i testbench.settings 2>&1  | tee $query.log";
 #	my $cmd="cat $query.log";
 	#print $cmd ; exit;
